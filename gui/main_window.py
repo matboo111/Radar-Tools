@@ -1,12 +1,15 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QDialog, QTextEdit, QPushButton
+from PyQt6.QtWidgets import QStackedWidget, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QDialog, QTextEdit, QPushButton
 from gui.connection_panel import ConnectionPanel
-from gui.live_view import LiveView
+from gui.live_view import LiveViewObject, LiveViewCluster
 from gui.radar_view import RadarView
 from gui.config_panel import ConfigPanel
 from can_interface.can_manager import CANManager
 from can_interface.dbc_decoder import DBCDecoder
 from processing.object_cache import ObjectCache
+from processing.cluster_cache import ClusterCache
 from PyQt6.QtCore import QTimer
+from processing.radar_mode import RadarMode
+
 
 
 DBC_FILES = [
@@ -48,14 +51,23 @@ class MainWindow(QMainWindow):
         self.connection_panel.mode_changed.connect(self.on_mode_changed)
 
         self.config_panel = ConfigPanel(self.can_manager, self.decoder)
-        self.live_view = LiveView()
+
+        self.live_view_object = LiveViewObject()
+        self.live_view_cluster = LiveViewCluster()
+
+        self.current_mode = RadarMode.OBJECT
+
+        self.live_stack = QStackedWidget()
+        self.live_stack.addWidget(self.live_view_object)
+        self.live_stack.addWidget(self.live_view_cluster)
+
         self.radar_view = RadarView()
 
         left_layout.addWidget(self.connection_panel)
         left_layout.addWidget(self.config_panel)
 
         right_layout.addWidget(self.radar_view)
-        right_layout.addWidget(self.live_view)
+        right_layout.addWidget(self.live_stack)
 
         main_layout.addLayout(left_layout, 1)
         main_layout.addLayout(right_layout, 3)
@@ -63,6 +75,7 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(main_layout)
 
         self.cache = ObjectCache()
+        self.cluster_cache = ClusterCache()
 
         self.can_manager.message_received.connect(self.handle_message)
 
@@ -78,26 +91,41 @@ class MainWindow(QMainWindow):
         if decoded is None:
             return
 
-        self.cache.update(msg.arbitration_id, decoded)
+        if self.current_mode == RadarMode.OBJECT:
+            self.cache.update(msg.arbitration_id, decoded)
+
+        else:
+            self.cluster_cache.update(msg.arbitration_id, decoded)
     
     def update_gui(self):
 
-        snapshot = self.cache.snapshot()
+        if self.current_mode == RadarMode.OBJECT:
+            objects = self.cache.snapshot()
+            self.live_view_object.update_table_bulk(objects)
+            self.radar_view.mode = self.current_mode
+            self.radar_view.update_plot_bulk(objects)
 
-        self.live_view.update_table_bulk(snapshot)
-        self.radar_view.update_plot_bulk(snapshot)
+            count = self.cache.get_object_count()
+            self.statusBar().showMessage(
+                f"Objects detected: {count}"
+            )
 
-        count = self.cache.get_object_count()
-        self.statusBar().showMessage(
-            f"Objects detected: {count}"
-        )
+        else:
+            clusters = self.cluster_cache.snapshot()
+            self.live_view_cluster.update_table_bulk(clusters)
+            self.radar_view.mode = self.current_mode
+            self.radar_view.update_plot_bulk(clusters)
+            count = self.cluster_cache.get_cluster_count()
+            self.statusBar().showMessage(
+                f"Clusters detected: {count}"
+            )
 
     def show_config_dialog(self):
 
         data = getattr(self.cache, "last_config", None)
 
         dialog = QDialog(self)
-        dialog.setWindowTitle("Radar Configuration (0x201)")
+        dialog.setWindowTitle("Radar Configuration ")
         dialog.resize(500, 400)
 
         layout = QVBoxLayout()
@@ -126,7 +154,7 @@ class MainWindow(QMainWindow):
         data = getattr(self.cache, "last_firmware", None)
 
         dialog = QDialog(self)
-        dialog.setWindowTitle("Radar Firmware Info (0x700)")
+        dialog.setWindowTitle("Radar Firmware Info")
         dialog.resize(500, 400)
 
         layout = QVBoxLayout()
@@ -154,4 +182,9 @@ class MainWindow(QMainWindow):
 
         print("Switching mode to:", mode)
 
-        self.object_cache.set_mode(mode)
+        self.current_mode = mode
+
+        if mode == RadarMode.OBJECT:
+            self.live_stack.setCurrentWidget(self.live_view_object)
+        else:
+            self.live_stack.setCurrentWidget(self.live_view_cluster)

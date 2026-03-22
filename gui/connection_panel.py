@@ -4,11 +4,13 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 
+from processing.radar_mode import RadarMode
+
 class ConnectionPanel(QWidget):
 
     show_config_requested = pyqtSignal()
     show_firmware_requested = pyqtSignal()
-    mode_changed = pyqtSignal(str)
+    mode_changed = pyqtSignal(RadarMode)
 
     def __init__(self, can_manager):
 
@@ -54,7 +56,6 @@ class ConnectionPanel(QWidget):
         self.firmware_button = QPushButton("Firmware Info (0x700)")
 
         self.mode_button = QPushButton("Switch to Cluster Mode")
-        self.current_mode = "object"
         self.mode_button.clicked.connect(self.toggle_mode)
 
         self.status_label = QLabel("Status: Disconnected")
@@ -114,11 +115,11 @@ class ConnectionPanel(QWidget):
         self.disconnect_button.setEnabled(False)
 
     def toggle_mode(self):
-        if self.current_mode == "object":
-            self.current_mode = "cluster"
+        if self.mode_button.text() == "Switch to Cluster Mode":
+            mode = RadarMode.CLUSTER
             self.mode_button.setText("Switch to Object Mode")
         else:
-            self.current_mode = "object"
+            mode = RadarMode.OBJECT
             self.mode_button.setText("Switch to Cluster Mode")
 
-        self.mode_changed.emit(self.current_mode)
+        self.mode_changed.emit(mode)

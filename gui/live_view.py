@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import QTableWidget, QTableWidgetItem
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem
 
-class LiveView(QTableWidget):
+class LiveViewObject(QTableWidget):
     def __init__(self):
         super().__init__(0, 14)
         self.setHorizontalHeaderLabels(
@@ -27,3 +27,44 @@ class LiveView(QTableWidget):
             self.setItem(row, 11, QTableWidgetItem(str(data.get("Obj_Class", ""))))
             self.setItem(row, 12, QTableWidgetItem(str(data.get("Obj_Width", ""))))
             self.setItem(row, 13, QTableWidgetItem(str(data.get("Obj_Length", ""))))
+
+class LiveViewCluster(QWidget):
+
+    def __init__(self):
+        super().__init__()
+
+        layout = QVBoxLayout(self)
+
+        self.table = QTableWidget()
+        layout.addWidget(self.table)
+
+        self.headers = [
+            "Cluster_ID",
+            "DistLong",
+            "DistLat",
+            "VrelLong",
+            "RCS"
+        ]
+
+        self.table.setColumnCount(len(self.headers))
+        self.table.setHorizontalHeaderLabels(self.headers)
+
+    # -----------------------------------------
+
+    def update_table_bulk(self, clusters):
+
+        self.table.setRowCount(len(clusters))
+
+        for row, cluster in enumerate(clusters.values()):
+
+            self._set_item(row, 0, cluster.get("Cluster_ID"))
+            self._set_item(row, 1, cluster.get("Cluster_DistLong"))
+            self._set_item(row, 2, cluster.get("Cluster_DistLat"))
+            self._set_item(row, 3, cluster.get("Cluster_VrelLong"))
+            self._set_item(row, 4, cluster.get("Cluster_RCS"))
+
+    # -----------------------------------------
+
+    def _set_item(self, row, col, value):
+        item = QTableWidgetItem(str(value) if value is not None else "")
+        self.table.setItem(row, col, item)

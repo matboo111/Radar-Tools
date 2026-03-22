@@ -2,6 +2,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import pyqtgraph as pg
 from PyQt6.QtWidgets import QWidget, QVBoxLayout
+from processing.radar_mode import RadarMode
 
 class RadarView(FigureCanvas):
     # This method is used with matplotlib
@@ -60,6 +61,8 @@ class RadarView(FigureCanvas):
 
         self.plot_widget.addItem(self.scatter)
 
+        self.mode = RadarMode.OBJECT
+
     # def update_plot_bulk(self, objects):
     #     self.ax.clear()
 
@@ -80,9 +83,14 @@ class RadarView(FigureCanvas):
         x_vals = []
         y_vals = []
 
-        for obj in objects.values():
-            x_vals.append(obj.get("Obj_DistLat", 0))
-            y_vals.append(obj.get("Obj_DistLong", 0))
+        if self.mode == RadarMode.OBJECT:
+            for obj in objects.values():
+                x_vals.append(obj.get("Obj_DistLat", 0))
+                y_vals.append(obj.get("Obj_DistLong", 0))
+        elif self.mode == RadarMode.CLUSTER:
+            for cluster in objects.values():
+                x_vals.append(cluster.get("Cluster_DistLat", 0))
+                y_vals.append(cluster.get("Cluster_DistLong", 0))
         
         # if x_vals and y_vals:
         #     self.plot_widget.enableAutoRange()

@@ -8,6 +8,7 @@ class ConnectionPanel(QWidget):
 
     show_config_requested = pyqtSignal()
     show_firmware_requested = pyqtSignal()
+    mode_changed = pyqtSignal(str)
 
     def __init__(self, can_manager):
 
@@ -52,10 +53,15 @@ class ConnectionPanel(QWidget):
         self.config_button = QPushButton("Radar Config (0x201)")
         self.firmware_button = QPushButton("Firmware Info (0x700)")
 
+        self.mode_button = QPushButton("Switch to Cluster Mode")
+        self.current_mode = "object"
+        self.mode_button.clicked.connect(self.toggle_mode)
+
         self.status_label = QLabel("Status: Disconnected")
 
         layout.addWidget(self.config_button)
         layout.addWidget(self.firmware_button)
+        layout.addWidget(self.mode_button)
 
         layout.addWidget(QLabel("Interface"))
         layout.addWidget(self.interface_combo)
@@ -106,3 +112,13 @@ class ConnectionPanel(QWidget):
         self.status_label.setText("Status: Disconnected")
         self.connect_button.setEnabled(True)
         self.disconnect_button.setEnabled(False)
+
+    def toggle_mode(self):
+        if self.current_mode == "object":
+            self.current_mode = "cluster"
+            self.mode_button.setText("Switch to Object Mode")
+        else:
+            self.current_mode = "object"
+            self.mode_button.setText("Switch to Cluster Mode")
+
+        self.mode_changed.emit(self.current_mode)

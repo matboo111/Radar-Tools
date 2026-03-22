@@ -1,0 +1,21 @@
+radar_tool/
+│
+├── main.py
+│
+├── gui/
+│   ├── main_window.py
+│   ├── connection_panel.py /building...
+│   ├── live_view.py
+│   ├── radar_view.py
+│   └── config_panel.py
+│
+├── can_interface/
+│   ├── can_manager.py
+│   └── dbc_decoder.py
+│
+├── processing/
+│   ├── tracking.py       /building...
+│   └── kalman.py         / building...
+│
+└── resources/
+    └── ARS408.dbc

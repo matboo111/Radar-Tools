@@ -1,5 +1,6 @@
 import threading
 import time
+from processing.numeric_filter import NumericFilter
 
 class ClusterCache:
     def __init__(self):
@@ -10,6 +11,8 @@ class ClusterCache:
 
         self.last_cycle_time = 0
         self.cycle_timeout = 3.0
+
+        self.filter = NumericFilter()
 
     # -----------------------------------------
 
@@ -57,8 +60,10 @@ class ClusterCache:
 
             if time.time() - self.last_cycle_time > self.cycle_timeout:
                 return {}
+            
+            data = self.display_clusters.copy()
 
-            return self.display_clusters.copy()
+        return self.filter.apply_cluster(data)
 
     # -----------------------------------------
 

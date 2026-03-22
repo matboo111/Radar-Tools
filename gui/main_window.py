@@ -3,6 +3,7 @@ from gui.connection_panel import ConnectionPanel
 from gui.live_view import LiveViewObject, LiveViewCluster
 from gui.radar_view import RadarView
 from gui.config_panel import ConfigPanel
+from gui.numeric_filter_panel import NumericFilterPanel
 from can_interface.can_manager import CANManager
 from can_interface.dbc_decoder import DBCDecoder
 from processing.object_cache import ObjectCache
@@ -40,6 +41,9 @@ class MainWindow(QMainWindow):
         left_layout = QVBoxLayout()
         right_layout = QVBoxLayout()
 
+        self.cache = ObjectCache()
+        self.cluster_cache = ClusterCache()
+
         self.connection_panel = ConnectionPanel(self.can_manager)
         self.connection_panel.show_config_requested.connect(
             self.show_config_dialog
@@ -63,6 +67,13 @@ class MainWindow(QMainWindow):
 
         self.radar_view = RadarView()
 
+        self.filter_panel = NumericFilterPanel(
+            self.cache,
+            self.cluster_cache
+        )
+
+        left_layout.addWidget(self.filter_panel)
+
         left_layout.addWidget(self.connection_panel)
         left_layout.addWidget(self.config_panel)
 
@@ -73,9 +84,6 @@ class MainWindow(QMainWindow):
         main_layout.addLayout(right_layout, 3)
 
         central_widget.setLayout(main_layout)
-
-        self.cache = ObjectCache()
-        self.cluster_cache = ClusterCache()
 
         self.can_manager.message_received.connect(self.handle_message)
 

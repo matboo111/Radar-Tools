@@ -1,5 +1,6 @@
 import threading
 import time
+from processing.numeric_filter import NumericFilter
 
 class ObjectCache:
     def __init__(self):
@@ -13,6 +14,8 @@ class ObjectCache:
 
         self.last_config = {}
         self.last_firmware = {}
+
+        self.filter = NumericFilter()
 
     def update(self, arbitration_id, decoded):
 
@@ -67,9 +70,11 @@ class ObjectCache:
 
             # Se radar parou de enviar, limpa
             if time.time() - self.last_cycle_time > self.cycle_timeout:
-                self.display_objects = {}
+                return {}
+            
+            data = self.display_objects.copy()
 
-            return self.display_objects.copy()
+        return self.filter.apply_object(data)
 
     def get_object_count(self):
         with self.lock:

@@ -45,6 +45,8 @@ class MainWindow(QMainWindow):
         self.connection_panel.show_firmware_requested.connect(
             self.show_firmware_dialog
         )
+        self.connection_panel.mode_changed.connect(self.on_mode_changed)
+
         self.config_panel = ConfigPanel(self.can_manager, self.decoder)
         self.live_view = LiveView()
         self.radar_view = RadarView()
@@ -147,3 +149,9 @@ class MainWindow(QMainWindow):
 
         dialog.setLayout(layout)
         dialog.exec()
+
+    def on_mode_changed(self, mode):
+
+        print("Switching mode to:", mode)
+
+        self.object_cache.set_mode(mode)

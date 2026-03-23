@@ -169,7 +169,7 @@ UI (Plot + Tables)
 ```
 Radar-Tools/
 │
-├── core/
+├── processing/
 │   ├── object_cache.py
 │   ├── cluster_cache.py
 │   ├── numeric_filter.py
@@ -179,14 +179,19 @@ Radar-Tools/
 │   ├── main_window.py
 │   ├── radar_view.py
 │   ├── live_view.py
-│   ├── live_view_cluster.py
 │   ├── connection_panel.py
 │   ├── numeric_filter_panel.py
 │   ├── radar_visibility_panel.py
 │   ├── radar_selector_dialog.py
+|   ├── config_panel.py
+|   ├── radar_visibility_panel.py
 │
 ├── resources/
 │   ├── *.dbc
+|
+├── can_interface/
+│   ├── can_manager.py
+|   ├── dbc_decoder.py
 │
 ├── main.py
 └── README.md

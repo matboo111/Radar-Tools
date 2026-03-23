@@ -236,7 +236,7 @@ UI Rendering
 
 ## 📸 Screenshots
 
-> *Add screenshots here*
+> will be added
 
 ```
 docs/
@@ -310,7 +310,7 @@ Electrical Engineer – Embedded Systems & Radar Processing
 
 ## 📄 License
 
-Specify your license here (MIT, proprietary, etc.)
+public
 
 ---
 

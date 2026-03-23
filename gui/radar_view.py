@@ -63,40 +63,65 @@ class RadarView(FigureCanvas):
 
         self.mode = RadarMode.OBJECT
 
-    # def update_plot_bulk(self, objects):
-    #     self.ax.clear()
-
-    #     self.ax.set_xlabel("Distância Lateral (m)")
-    #     self.ax.set_ylabel("Distância Longitudinal (m)")
-    #     self.ax.set_xlim(-50, 50)
-    #     self.ax.set_ylim(0, 200)
-
-    #     for oid, data in objects.items():
-    #         x = data.get("Obj_DistLat", 0)
-    #         y = data.get("Obj_DistLong", 0)
-    #         self.ax.scatter(x, y)
-
-    #     self.draw()
+        self.visible_radars = set(range(8))
 
     def update_plot_bulk(self, objects):
 
-        x_vals = []
-        y_vals = []
+        spots = []
+
+        RADAR_COLORS = {
+            0: (255, 0, 0),
+            1: (0, 255, 0),
+            2: (0, 0, 255),
+            3: (255, 255, 0),
+            4: (255, 0, 255),
+            5: (0, 255, 255),
+            6: (200, 100, 0),
+            7: (100, 0, 200),
+        }
 
         if self.mode == RadarMode.OBJECT:
-            for obj in objects.values():
-                x_vals.append(obj.get("Obj_DistLat", 0))
-                y_vals.append(obj.get("Obj_DistLong", 0))
-        elif self.mode == RadarMode.CLUSTER:
-            for cluster in objects.values():
-                x_vals.append(cluster.get("Cluster_DistLat", 0))
-                y_vals.append(cluster.get("Cluster_DistLong", 0))
-        
-        # if x_vals and y_vals:
-        #     self.plot_widget.enableAutoRange()
-        
-        self.plot_widget.getAxis("bottom").setTickSpacing(10, 5)
-        self.plot_widget.getAxis("left").setTickSpacing(20, 10)
 
-        self.scatter.setData(x_vals, y_vals)
+            for obj in objects.values():
+
+                rid = obj.get("Radar_ID", 0)
+
+                if rid not in self.visible_radars:
+                    continue
+
+                x = obj.get("Obj_DistLat", 0)
+                y = obj.get("Obj_DistLong", 0)
+
+                color = RADAR_COLORS.get(rid, (255, 255, 255))
+
+                spots.append({
+                    'pos': (x, y),
+                    'brush': color,
+                    'size': 8
+                })
+
+        elif self.mode == RadarMode.CLUSTER:
+
+            for cluster in objects.values():
+
+                rid = cluster.get("Radar_ID", 0)
+
+                if rid not in self.visible_radars:
+                    continue
+
+                x = cluster.get("Cluster_DistLat", 0)
+                y = cluster.get("Cluster_DistLong", 0)
+
+                color = RADAR_COLORS.get(rid, (255, 255, 255))
+
+                spots.append({
+                    'pos': (x, y),
+                    'brush': color,
+                    'size': 6
+                })
+
+        self.scatter.setData(spots)
+
+    def set_visible_radars(self, radar_ids):
+        self.visible_radars = set(radar_ids)
 

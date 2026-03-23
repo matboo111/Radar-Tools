@@ -11,6 +11,7 @@ class ConnectionPanel(QWidget):
     show_config_requested = pyqtSignal()
     show_firmware_requested = pyqtSignal()
     mode_changed = pyqtSignal(RadarMode)
+    radar_select_requested = pyqtSignal()
 
     def __init__(self, can_manager):
 
@@ -52,6 +53,9 @@ class ConnectionPanel(QWidget):
         self.disconnect_button = QPushButton("Disconnect")
         self.disconnect_button.setEnabled(False)
 
+        self.radar_select_button = QPushButton("Select Radars")
+        layout.addWidget(self.radar_select_button)
+
         self.config_button = QPushButton("Radar Config (0x201)")
         self.firmware_button = QPushButton("Firmware Info (0x700)")
 
@@ -87,6 +91,10 @@ class ConnectionPanel(QWidget):
 
         self.firmware_button.clicked.connect(
             self.show_firmware_requested.emit
+        )
+
+        self.radar_select_button.clicked.connect(
+            self.radar_select_requested.emit
         )
 
     def connect_can(self):

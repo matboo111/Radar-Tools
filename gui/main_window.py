@@ -1,15 +1,18 @@
 from PyQt6.QtWidgets import QStackedWidget, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QDialog, QTextEdit, QPushButton
 from gui.connection_panel import ConnectionPanel
 from gui.live_view import LiveViewObject, LiveViewCluster
+from gui.radar_selector_dialog import RadarSelectorDialog
 from gui.radar_view import RadarView
 from gui.config_panel import ConfigPanel
 from gui.numeric_filter_panel import NumericFilterPanel
+from gui.radar_visibility_panel import RadarVisibilityPanel
 from can_interface.can_manager import CANManager
 from can_interface.dbc_decoder import DBCDecoder
 from processing.object_cache import ObjectCache
 from processing.cluster_cache import ClusterCache
 from PyQt6.QtCore import QTimer
 from processing.radar_mode import RadarMode
+
 
 
 
@@ -56,6 +59,10 @@ class MainWindow(QMainWindow):
 
         self.config_panel = ConfigPanel(self.can_manager, self.decoder)
 
+        self.connection_panel.radar_select_requested.connect(
+            self.open_radar_selector
+        )
+
         self.live_view_object = LiveViewObject()
         self.live_view_cluster = LiveViewCluster()
 
@@ -70,6 +77,13 @@ class MainWindow(QMainWindow):
         self.filter_panel = NumericFilterPanel(
             self.cache,
             self.cluster_cache
+        )
+
+        self.radar_visibility_panel = RadarVisibilityPanel()
+        left_layout.addWidget(self.radar_visibility_panel)
+
+        self.radar_visibility_panel.visibility_changed.connect(
+            self.on_visibility_changed
         )
 
         left_layout.addWidget(self.filter_panel)
@@ -196,3 +210,16 @@ class MainWindow(QMainWindow):
             self.live_stack.setCurrentWidget(self.live_view_object)
         else:
             self.live_stack.setCurrentWidget(self.live_view_cluster)
+
+    def open_radar_selector(self):
+
+        dialog = RadarSelectorDialog(
+            self.cache,
+            self.cluster_cache
+        )
+
+        dialog.exec()
+
+    def on_visibility_changed(self, radar_ids):
+
+        self.radar_view.set_visible_radars(radar_ids)
